@@ -1,0 +1,15 @@
+@media (max-width: 767px) {
+  .bg-art {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bg-doodle {
+    animation: none !important;
+  }
+
+  .bg-doodle svg {
+    transition: none !important;
+  }
+}

@@ -1,0 +1,83 @@
+body {
+  background-color: var(--bg);
+  position: relative;
+}
+
+.bg-art {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+  color: var(--text-subtle);
+  opacity: 0.07;
+  transition: opacity 300ms var(--ease-out);
+}
+
+[data-theme="dark"] .bg-art {
+  opacity: 0.09;
+}
+
+.app,
+.app-column {
+  position: relative;
+  z-index: 10;
+}
+
+.bg-doodle {
+  position: absolute;
+  pointer-events: none;
+}
+
+.doodle-sm {
+  width: 80px;
+  height: 80px;
+}
+
+.doodle-md {
+  width: 120px;
+  height: 120px;
+}
+
+.doodle-lg {
+  width: 160px;
+  height: 160px;
+}
+
+.bg-doodle svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.25;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.pos-1 { top: 4%; left: 4%; transform: rotate(-8deg); }
+.pos-2 { top: 5%; left: 26%; transform: rotate(11deg); }
+.pos-3 { top: 4%; left: 48%; transform: rotate(-6deg); }
+.pos-4 { top: 5%; left: 70%; transform: rotate(8deg); }
+.pos-5 { top: 4%; left: 90%; transform: rotate(-12deg); }
+
+.pos-6 { top: 23%; left: 14%; transform: rotate(13deg); }
+.pos-7 { top: 25%; left: 36%; transform: rotate(-9deg); }
+.pos-8 { top: 23%; left: 58%; transform: rotate(7deg); }
+.pos-9 { top: 25%; left: 80%; transform: rotate(-14deg); }
+
+.pos-10 { top: 43%; left: 3%; transform: rotate(-10deg); }
+.pos-11 { top: 45%; left: 25%; transform: rotate(6deg); }
+.pos-12 { top: 43%; left: 47%; transform: rotate(12deg); }
+.pos-13 { top: 45%; left: 69%; transform: rotate(-8deg); }
+.pos-14 { top: 43%; left: 89%; transform: rotate(14deg); }
+
+.pos-15 { top: 63%; left: 14%; transform: rotate(-13deg); }
+.pos-16 { top: 65%; left: 36%; transform: rotate(8deg); }
+.pos-17 { top: 63%; left: 58%; transform: rotate(-11deg); }
+.pos-18 { top: 65%; left: 80%; transform: rotate(5deg); }
+
+.pos-19 { top: 83%; left: 5%; transform: rotate(7deg); }
+.pos-20 { top: 85%; left: 27%; transform: rotate(-12deg); }
+.pos-21 { top: 83%; left: 49%; transform: rotate(10deg); }
+.pos-22 { top: 85%; left: 72%; transform: rotate(-7deg); }
