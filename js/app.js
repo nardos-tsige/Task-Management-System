@@ -29,10 +29,19 @@ const els = {
   themeBtn: document.getElementById('theme-toggle')
 };
 
+const ICONS = {
+  handle: '<svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><circle cx="7" cy="4" r="1.75"/><circle cx="13" cy="4" r="1.75"/><circle cx="7" cy="10" r="1.75"/><circle cx="13" cy="10" r="1.75"/><circle cx="7" cy="16" r="1.75"/><circle cx="13" cy="16" r="1.75"/></svg>',
+  pencil: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>',
+  trash: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>',
+  hint: '<svg class="mobile-hint" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>',
+  check: '<svg class="check-svg" viewBox="0 0 20 20" fill="none"><rect class="check-box-rect" x="1" y="1" width="18" height="18" rx="9"/><path class="check-path" d="M5.5 10.2l3 3 6-6.4" fill="none" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  empty: '<svg class="empty-icon" width="96" height="96" viewBox="0 0 96 96" fill="none" stroke="var(--border-strong)" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><rect x="24" y="20" width="48" height="60" rx="8"/><path d="M38 16h20a2 2 0 0 1 2 2v2H36v-2a2 2 0 0 1 2-2z"/><line x1="34" y1="36" x2="62" y2="36" stroke-dasharray="3 3"/><line x1="34" y1="46" x2="62" y2="46" stroke-dasharray="3 3"/><line x1="34" y1="56" x2="52" y2="56" stroke-dasharray="3 3"/><path d="M58 64l4 4 10-10" opacity="0.45" stroke="var(--border-strong)"/></svg>',
+  alert: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>'
+};
+
 function pickTheme() {
   const saved = localStorage.getItem("task_theme");
-  if (saved) return saved;
-  return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  return saved || (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
 }
 
 function applyTheme(theme) {
@@ -42,44 +51,34 @@ function applyTheme(theme) {
 }
 
 function toggleTheme() {
-  const next = state.theme === 'light' ? 'dark' : 'light';
-  applyTheme(next);
+  applyTheme(state.theme === 'light' ? 'dark' : 'light');
 }
 
 function renderStats() {
-  const stats = getStats(state.tasks);
-  els.statTotal.textContent = stats.total;
-  els.statDone.textContent = stats.completed;
-  els.statPending.textContent = stats.pending;
+  const s = getStats(state.tasks);
+  els.statTotal.textContent = s.total;
+  els.statDone.textContent = s.completed;
+  els.statPending.textContent = s.pending;
 }
 
 function updateCounts() {
-  const stats = getStats(state.tasks);
-  els.countAll.textContent = stats.total;
-  els.countPending.textContent = stats.pending;
-  els.countCompleted.textContent = stats.completed;
+  const s = getStats(state.tasks);
+  els.countAll.textContent = s.total;
+  els.countPending.textContent = s.pending;
+  els.countCompleted.textContent = s.completed;
 }
 
 function updateReorderHint() {
   const isFiltered = state.filter !== 'all' || (state.query && state.query.trim().length > 0);
-  if (isFiltered) {
-    els.reorderHint.textContent = 'Reordering is available in All view.';
-    els.reorderHint.classList.add('visible');
-    els.taskList.classList.add('drag-disabled');
-  } else {
-    els.reorderHint.textContent = '';
-    els.reorderHint.classList.remove('visible');
-    els.taskList.classList.remove('drag-disabled');
-  }
+  els.reorderHint.textContent = isFiltered ? 'Reordering is available in All view.' : '';
+  els.reorderHint.classList.toggle('visible', isFiltered);
+  els.taskList.classList.toggle('drag-disabled', isFiltered);
 }
 
 function updateLiveNumbers() {
-  const rows = els.taskList.querySelectorAll('.task-item:not(.empty-item)');
-  rows.forEach((item, idx) => {
+  els.taskList.querySelectorAll('.task-item:not(.empty-item)').forEach((item, idx) => {
     const numEl = item.querySelector('.task-number');
-    if (numEl) {
-      numEl.textContent = idx + 1;
-    }
+    if (numEl) numEl.textContent = idx + 1;
   });
 }
 
@@ -93,337 +92,71 @@ function drawTask(task, number, index) {
 
   const row = document.createElement('div');
   row.className = 'task-row' + (isEditing ? ' editing' : '');
+  row.innerHTML = `
+    <div class="drag-handle" role="button" aria-label="Drag to reorder" tabindex="-1">${ICONS.handle}</div>
+    <span class="task-number">${number}</span>
+    <label class="check-label" aria-label="${task.completed ? 'Mark task pending' : 'Mark task completed'}">
+      <input type="checkbox" class="sr-only task-check" data-action="toggle"${task.completed ? ' checked' : ''}>
+      ${ICONS.check}
+    </label>
+    ${isEditing ? '<input type="text" class="task-edit-input" aria-label="Edit task text">' : '<span class="task-title"></span>'}
+    <div class="priority-pill priority-${task.priority}">
+      <select class="priority-inline-select" aria-label="Task priority" data-action="priority">
+        <option value="low"${task.priority === 'low' ? ' selected' : ''}>Low</option>
+        <option value="medium"${task.priority === 'medium' ? ' selected' : ''}>Medium</option>
+        <option value="high"${task.priority === 'high' ? ' selected' : ''}>High</option>
+      </select>
+    </div>
+    <button type="button" class="pencil-btn" aria-label="Edit task" data-action="edit">${ICONS.pencil}</button>
+    <button type="button" class="delete-btn" aria-label="Delete task" data-action="delete">${ICONS.trash}</button>
+    ${ICONS.hint}`;
 
-  const handle = document.createElement('div');
-  handle.className = 'drag-handle';
-  handle.setAttribute('role', 'button');
-  handle.setAttribute('aria-label', 'Drag to reorder');
-  handle.tabIndex = -1;
-
-  const svgHandle = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-  svgHandle.setAttribute('width', '14');
-  svgHandle.setAttribute('height', '14');
-  svgHandle.setAttribute('viewBox', '0 0 20 20');
-  svgHandle.setAttribute('fill', 'currentColor');
-  svgHandle.setAttribute('aria-hidden', 'true');
-
-  const c1 = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-  c1.setAttribute('cx', '7'); c1.setAttribute('cy', '4'); c1.setAttribute('r', '1.75');
-  const c2 = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-  c2.setAttribute('cx', '13'); c2.setAttribute('cy', '4'); c2.setAttribute('r', '1.75');
-  const c3 = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-  c3.setAttribute('cx', '7'); c3.setAttribute('cy', '10'); c3.setAttribute('r', '1.75');
-  const c4 = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-  c4.setAttribute('cx', '13'); c4.setAttribute('cy', '10'); c4.setAttribute('r', '1.75');
-  const c5 = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-  c5.setAttribute('cx', '7'); c5.setAttribute('cy', '16'); c5.setAttribute('r', '1.75');
-  const c6 = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-  c6.setAttribute('cx', '13'); c6.setAttribute('cy', '16'); c6.setAttribute('r', '1.75');
-
-  svgHandle.appendChild(c1);
-  svgHandle.appendChild(c2);
-  svgHandle.appendChild(c3);
-  svgHandle.appendChild(c4);
-  svgHandle.appendChild(c5);
-  svgHandle.appendChild(c6);
-  handle.appendChild(svgHandle);
-
-  const numSpan = document.createElement('span');
-  numSpan.className = 'task-number';
-  numSpan.textContent = number;
-
-  const label = document.createElement('label');
-  label.className = 'check-label';
-  label.setAttribute('aria-label', task.completed ? 'Mark task pending' : 'Mark task completed');
-  label.addEventListener('click', (e) => {
-    e.preventDefault();
-  });
-
-  const check = document.createElement('input');
-  check.type = 'checkbox';
-  check.className = 'sr-only task-check';
-  check.checked = task.completed;
-  check.dataset.action = 'toggle';
-
-  const svgCheck = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-  svgCheck.setAttribute('class', 'check-svg');
-  svgCheck.setAttribute('viewBox', '0 0 20 20');
-  svgCheck.setAttribute('fill', 'none');
-
-  const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-  rect.setAttribute('class', 'check-box-rect');
-  rect.setAttribute('x', '1');
-  rect.setAttribute('y', '1');
-  rect.setAttribute('width', '18');
-  rect.setAttribute('height', '18');
-  rect.setAttribute('rx', '9');
-
-  const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-  path.setAttribute('class', 'check-path');
-  path.setAttribute('d', 'M5.5 10.2l3 3 6-6.4');
-  path.setAttribute('fill', 'none');
-  path.setAttribute('stroke-width', '1.85');
-  path.setAttribute('stroke-linecap', 'round');
-  path.setAttribute('stroke-linejoin', 'round');
-
-  svgCheck.appendChild(rect);
-  svgCheck.appendChild(path);
-
-  label.appendChild(check);
-  label.appendChild(svgCheck);
-
-  let textSlot;
+  row.querySelector('.check-label').addEventListener('click', (e) => e.preventDefault());
   if (isEditing) {
-    textSlot = document.createElement('input');
-    textSlot.type = 'text';
-    textSlot.className = 'task-edit-input';
-    textSlot.value = task.text;
-    textSlot.setAttribute('aria-label', 'Edit task text');
+    row.querySelector('.task-edit-input').value = task.text;
   } else {
-    textSlot = document.createElement('span');
-    textSlot.className = 'task-title';
-    textSlot.textContent = task.text;
-    textSlot.title = task.text;
+    const title = row.querySelector('.task-title');
+    title.textContent = task.text;
+    title.title = task.text;
   }
-
-  const pill = document.createElement('div');
-  pill.className = 'priority-pill priority-' + task.priority;
-
-  const pSelect = document.createElement('select');
-  pSelect.className = 'priority-inline-select';
-  pSelect.setAttribute('aria-label', 'Task priority');
-  pSelect.dataset.action = 'priority';
-
-  const optLow = document.createElement('option');
-  optLow.value = 'low';
-  optLow.textContent = 'Low';
-  if (task.priority === 'low') optLow.selected = true;
-
-  const optMed = document.createElement('option');
-  optMed.value = 'medium';
-  optMed.textContent = 'Medium';
-  if (task.priority === 'medium') optMed.selected = true;
-
-  const optHigh = document.createElement('option');
-  optHigh.value = 'high';
-  optHigh.textContent = 'High';
-  if (task.priority === 'high') optHigh.selected = true;
-
-  pSelect.appendChild(optLow);
-  pSelect.appendChild(optMed);
-  pSelect.appendChild(optHigh);
-  pill.appendChild(pSelect);
-
-  const pencil = document.createElement('button');
-  pencil.type = 'button';
-  pencil.className = 'pencil-btn';
-  pencil.setAttribute('aria-label', 'Edit task');
-  pencil.dataset.action = 'edit';
-
-  const svgPencil = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-  svgPencil.setAttribute('width', '16');
-  svgPencil.setAttribute('height', '16');
-  svgPencil.setAttribute('viewBox', '0 0 24 24');
-  svgPencil.setAttribute('fill', 'none');
-  svgPencil.setAttribute('stroke', 'currentColor');
-  svgPencil.setAttribute('stroke-width', '1.85');
-  svgPencil.setAttribute('stroke-linecap', 'round');
-  svgPencil.setAttribute('stroke-linejoin', 'round');
-
-  const pPath1 = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-  pPath1.setAttribute('d', 'M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z');
-
-  const pPath2 = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-  pPath2.setAttribute('d', 'm15 5 4 4');
-
-  svgPencil.appendChild(pPath1);
-  svgPencil.appendChild(pPath2);
-  pencil.appendChild(svgPencil);
-
-  const del = document.createElement('button');
-  del.type = 'button';
-  del.className = 'delete-btn';
-  del.setAttribute('aria-label', 'Delete task');
-  del.dataset.action = 'delete';
-
-  const svgDel = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-  svgDel.setAttribute('width', '16');
-  svgDel.setAttribute('height', '16');
-  svgDel.setAttribute('viewBox', '0 0 24 24');
-  svgDel.setAttribute('fill', 'none');
-  svgDel.setAttribute('stroke', 'currentColor');
-  svgDel.setAttribute('stroke-width', '1.85');
-  svgDel.setAttribute('stroke-linecap', 'round');
-  svgDel.setAttribute('stroke-linejoin', 'round');
-
-  const polyline = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
-  polyline.setAttribute('points', '3 6 5 6 21 6');
-
-  const path1 = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-  path1.setAttribute('d', 'M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2');
-
-  const line1 = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-  line1.setAttribute('x1', '10');
-  line1.setAttribute('y1', '11');
-  line1.setAttribute('x2', '10');
-  line1.setAttribute('y2', '17');
-
-  const line2 = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-  line2.setAttribute('x1', '14');
-  line2.setAttribute('y1', '11');
-  line2.setAttribute('x2', '14');
-  line2.setAttribute('y2', '17');
-
-  svgDel.appendChild(polyline);
-  svgDel.appendChild(path1);
-  svgDel.appendChild(line1);
-  svgDel.appendChild(line2);
-  del.appendChild(svgDel);
-
-  const svgHint = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-  svgHint.setAttribute('class', 'mobile-hint');
-  svgHint.setAttribute('width', '14');
-  svgHint.setAttribute('height', '14');
-  svgHint.setAttribute('viewBox', '0 0 24 24');
-  svgHint.setAttribute('fill', 'none');
-  svgHint.setAttribute('stroke', 'currentColor');
-  svgHint.setAttribute('stroke-width', '1.85');
-  svgHint.setAttribute('stroke-linecap', 'round');
-  svgHint.setAttribute('stroke-linejoin', 'round');
-
-  const polyHint = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
-  polyHint.setAttribute('points', '9 18 15 12 9 6');
-  svgHint.appendChild(polyHint);
-
-  row.appendChild(handle);
-  row.appendChild(numSpan);
-  row.appendChild(label);
-  row.appendChild(textSlot);
-  row.appendChild(pill);
-  row.appendChild(pencil);
-  row.appendChild(del);
-  row.appendChild(svgHint);
   li.appendChild(row);
-
   return li;
 }
 
 function drawEmpty(type) {
   const li = document.createElement('li');
   li.className = 'empty-item';
-
-  const box = document.createElement('div');
-  box.className = 'empty-state';
-
-  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-  svg.setAttribute('class', 'empty-icon');
-  svg.setAttribute('width', '96');
-  svg.setAttribute('height', '96');
-  svg.setAttribute('viewBox', '0 0 96 96');
-  svg.setAttribute('fill', 'none');
-  svg.setAttribute('stroke', 'var(--border-strong)');
-  svg.setAttribute('stroke-width', '1.25');
-  svg.setAttribute('stroke-linecap', 'round');
-  svg.setAttribute('stroke-linejoin', 'round');
-
-  const r = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-  r.setAttribute('x', '24');
-  r.setAttribute('y', '20');
-  r.setAttribute('width', '48');
-  r.setAttribute('height', '60');
-  r.setAttribute('rx', '8');
-
-  const p1 = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-  p1.setAttribute('d', 'M38 16h20a2 2 0 0 1 2 2v2H36v-2a2 2 0 0 1 2-2z');
-
-  const l1 = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-  l1.setAttribute('x1', '34');
-  l1.setAttribute('y1', '36');
-  l1.setAttribute('x2', '62');
-  l1.setAttribute('y2', '36');
-  l1.setAttribute('stroke-dasharray', '3 3');
-
-  const l2 = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-  l2.setAttribute('x1', '34');
-  l2.setAttribute('y1', '46');
-  l2.setAttribute('x2', '62');
-  l2.setAttribute('y2', '46');
-  l2.setAttribute('stroke-dasharray', '3 3');
-
-  const l3 = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-  l3.setAttribute('x1', '34');
-  l3.setAttribute('y1', '56');
-  l3.setAttribute('x2', '52');
-  l3.setAttribute('y2', '56');
-  l3.setAttribute('stroke-dasharray', '3 3');
-
-  const p2 = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-  p2.setAttribute('d', 'M58 64l4 4 10-10');
-  p2.setAttribute('opacity', '0.45');
-  p2.setAttribute('stroke', 'var(--border-strong)');
-
-  svg.appendChild(r);
-  svg.appendChild(p1);
-  svg.appendChild(l1);
-  svg.appendChild(l2);
-  svg.appendChild(l3);
-  svg.appendChild(p2);
-
-  const t1 = document.createElement('p');
-  t1.className = 'empty-title';
-
-  const t2 = document.createElement('p');
-  t2.className = 'empty-hint';
-
-  if (type === 'search') {
-    t1.textContent = 'Nothing matches. Try a different search or filter.';
-    t2.textContent = 'Tip: press Escape to clear search.';
-  } else {
-    t1.textContent = 'No tasks yet. Add one above to get started.';
-    t2.textContent = 'Tip: press Enter to submit.';
-  }
-
-  box.appendChild(svg);
-  box.appendChild(t1);
-  box.appendChild(t2);
-  li.appendChild(box);
-
+  const isSearch = type === 'search';
+  li.innerHTML = `<div class="empty-state">${ICONS.empty}
+    <p class="empty-title">${isSearch ? 'Nothing matches. Try a different search or filter.' : 'No tasks yet. Add one above to get started.'}</p>
+    <p class="empty-hint">${isSearch ? 'Tip: press Escape to clear search.' : 'Tip: press Enter to submit.'}</p>
+  </div>`;
   return li;
 }
 
 function renderList() {
   const filtered = filterTasks(state.tasks, state.filter);
   const visible = findTasks(filtered, state.query);
-
   els.taskList.replaceChildren();
-
   if (visible.length === 0) {
-    const isSearchEmpty = state.tasks.length > 0;
-    els.taskList.appendChild(drawEmpty(isSearchEmpty ? 'search' : 'all'));
+    els.taskList.appendChild(drawEmpty(state.tasks.length > 0 ? 'search' : 'all'));
     return;
   }
-
   const fragment = document.createDocumentFragment();
-  for (let i = 0; i < visible.length; i++) {
-    fragment.appendChild(drawTask(visible[i], i + 1, i));
-  }
+  for (let i = 0; i < visible.length; i++) fragment.appendChild(drawTask(visible[i], i + 1, i));
   els.taskList.appendChild(fragment);
 }
 
 function updateRow(id) {
   const existingLi = els.taskList.querySelector(`[data-id="${id}"]`);
   if (!existingLi) return;
-
   const task = state.tasks.find(t => t.id === id);
   if (!task) return;
-
   const filtered = filterTasks(state.tasks, state.filter);
   const visible = findTasks(filtered, state.query);
   const index = visible.findIndex(t => t.id === id);
-
   const newLi = drawTask(task, index >= 0 ? index + 1 : 1, 0);
   existingLi.replaceWith(newLi);
-
   if (state.editingId === id) {
     const input = newLi.querySelector('.task-edit-input');
     if (input) {
@@ -459,15 +192,12 @@ function commitEdit(id, text, inputEl) {
       inputEl.classList.remove('shake');
       void inputEl.offsetWidth;
       inputEl.classList.add('shake');
-      setTimeout(() => {
-        cancelEdit(id);
-      }, 340);
+      setTimeout(() => cancelEdit(id), 340);
     } else {
       cancelEdit(id);
     }
     return;
   }
-
   state.tasks = updateTask(state.tasks, id, { text: text.trim() });
   saveTasks(state.tasks);
   localStorage.setItem('hasEdited', '1');
@@ -480,7 +210,6 @@ function commitEdit(id, text, inputEl) {
 
 function bindEditEvents(input, id) {
   let isCommitted = false;
-
   input.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') {
       isCommitted = true;
@@ -490,7 +219,6 @@ function bindEditEvents(input, id) {
       cancelEdit(id);
     }
   });
-
   input.addEventListener('blur', () => {
     if (!isCommitted && state.editingId === id) {
       isCommitted = true;
@@ -521,42 +249,8 @@ function showError(msg) {
     els.formError.classList.remove('visible');
     return;
   }
-  els.formError.replaceChildren();
-
-  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-  svg.setAttribute('width', '14');
-  svg.setAttribute('height', '14');
-  svg.setAttribute('viewBox', '0 0 24 24');
-  svg.setAttribute('fill', 'none');
-  svg.setAttribute('stroke', 'currentColor');
-  svg.setAttribute('stroke-width', '1.85');
-  svg.setAttribute('stroke-linecap', 'round');
-  svg.setAttribute('stroke-linejoin', 'round');
-
-  const p = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-  p.setAttribute('d', 'm21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z');
-
-  const l1 = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-  l1.setAttribute('x1', '12');
-  l1.setAttribute('y1', '9');
-  l1.setAttribute('x2', '12');
-  l1.setAttribute('y2', '13');
-
-  const l2 = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-  l2.setAttribute('x1', '12');
-  l2.setAttribute('y1', '17');
-  l2.setAttribute('x2', '12.01');
-  l2.setAttribute('y2', '17');
-
-  svg.appendChild(p);
-  svg.appendChild(l1);
-  svg.appendChild(l2);
-
-  const span = document.createElement('span');
-  span.textContent = msg;
-
-  els.formError.appendChild(svg);
-  els.formError.appendChild(span);
+  els.formError.innerHTML = `${ICONS.alert}<span></span>`;
+  els.formError.querySelector('span').textContent = msg;
   els.formError.classList.add('visible');
 }
 
@@ -565,19 +259,14 @@ function clearError() {
 }
 
 function flashAddSuccess() {
-  const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  if (prefersReduced) {
-    const originalBg = els.addBtn.style.backgroundColor;
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    const orig = els.addBtn.style.backgroundColor;
     els.addBtn.style.backgroundColor = 'var(--success)';
-    setTimeout(() => {
-      els.addBtn.style.backgroundColor = originalBg;
-    }, 200);
+    setTimeout(() => { els.addBtn.style.backgroundColor = orig; }, 200);
   } else {
-    const originalHtml = els.addBtn.innerHTML;
+    const orig = els.addBtn.innerHTML;
     els.addBtn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
-    setTimeout(() => {
-      els.addBtn.innerHTML = originalHtml;
-    }, 400);
+    setTimeout(() => { els.addBtn.innerHTML = orig; }, 400);
   }
 }
 
@@ -592,22 +281,14 @@ function startDrag(itemEl, e) {
   if (!itemEl || drag || !isDragAllowed()) return;
   const rowEl = itemEl.querySelector('.task-row');
   if (!rowEl) return;
-
   const currentItems = Array.from(els.taskList.querySelectorAll('.task-item:not(.empty-item)'));
   if (currentItems.length <= 1) return;
 
-  const id = itemEl.dataset.id;
-  const initialIndex = currentItems.indexOf(itemEl);
-  const initialOrder = currentItems.map(item => item.dataset.id);
-
   try {
-    if (e.target && e.target.setPointerCapture) {
-      e.target.setPointerCapture(e.pointerId);
-    }
+    if (e.target && e.target.setPointerCapture) e.target.setPointerCapture(e.pointerId);
   } catch (err) {}
 
   const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
   const rowTops = new Map();
   const rowMids = new Map();
   currentItems.forEach(el => {
@@ -617,112 +298,77 @@ function startDrag(itemEl, e) {
   });
 
   const draggedRect = itemEl.getBoundingClientRect();
-  const initialMidY = draggedRect.top + draggedRect.height / 2;
-
   drag = {
-    id: id,
-    itemEl: itemEl,
-    rowEl: rowEl,
-    target: e.target,
-    pointerId: e.pointerId,
-    startY: e.clientY,
-    initialMidY: initialMidY,
-    initialIndex: initialIndex,
-    initialOrder: initialOrder,
-    rowTops: rowTops,
-    rowMids: rowMids,
-    prefersReduced: prefersReduced
+    id: itemEl.dataset.id, itemEl, rowEl,
+    target: e.target, pointerId: e.pointerId, startY: e.clientY,
+    initialMidY: draggedRect.top + draggedRect.height / 2,
+    initialIndex: currentItems.indexOf(itemEl),
+    initialOrder: currentItems.map(item => item.dataset.id),
+    rowTops, rowMids, prefersReduced
   };
 
   els.taskList.classList.add('is-dragging-active');
   rowEl.classList.add('is-dragging');
+  rowEl.style.transform = prefersReduced ? 'translateY(0px)' : 'translateY(0px) rotate(0.5deg) scale(1.02)';
+}
 
-  if (!prefersReduced) {
-    rowEl.style.transform = 'translateY(0px) rotate(0.5deg) scale(1.02)';
-  } else {
-    rowEl.style.transform = 'translateY(0px)';
-  }
+function animateRows(allRows, oldTops, exclude) {
+  allRows.forEach(row => {
+    if (row !== exclude) {
+      const diff = oldTops.get(row) - row.getBoundingClientRect().top;
+      if (diff !== 0) {
+        row.style.transition = 'none';
+        row.style.transform = `translateY(${diff}px)`;
+        void row.offsetWidth;
+        row.style.transition = 'transform 220ms cubic-bezier(0.16, 1, 0.3, 1)';
+        row.style.transform = 'translateY(0)';
+      }
+    }
+  });
 }
 
 function swapRows(draggedItem, crossedItem, position, e) {
   const allRows = Array.from(els.taskList.querySelectorAll('.task-item:not(.empty-item)'));
   const oldTops = new Map();
-  allRows.forEach(row => {
-    oldTops.set(row, row.getBoundingClientRect().top);
-  });
-
+  allRows.forEach(row => oldTops.set(row, row.getBoundingClientRect().top));
   const oldOffset = draggedItem.offsetTop;
 
-  if (position === 'before') {
-    crossedItem.before(draggedItem);
-  } else {
-    crossedItem.after(draggedItem);
-  }
+  if (position === 'before') crossedItem.before(draggedItem);
+  else crossedItem.after(draggedItem);
 
-  const newOffset = draggedItem.offsetTop;
-  const offsetDiff = newOffset - oldOffset;
+  const offsetDiff = draggedItem.offsetTop - oldOffset;
   drag.startY += offsetDiff;
   drag.initialMidY += offsetDiff;
 
   const newDeltaY = e.clientY - drag.startY;
-  if (!drag.prefersReduced) {
-    drag.rowEl.style.transform = 'translateY(' + newDeltaY + 'px) rotate(0.5deg) scale(1.02)';
-  } else {
-    drag.rowEl.style.transform = 'translateY(' + newDeltaY + 'px)';
-  }
+  drag.rowEl.style.transform = drag.prefersReduced ? `translateY(${newDeltaY}px)` : `translateY(${newDeltaY}px) rotate(0.5deg) scale(1.02)`;
 
-  if (!drag.prefersReduced) {
-    allRows.forEach(row => {
-      if (row !== draggedItem) {
-        const oldTop = oldTops.get(row);
-        const newTop = row.getBoundingClientRect().top;
-        const diff = oldTop - newTop;
-        if (diff !== 0) {
-          row.style.transition = 'none';
-          row.style.transform = 'translateY(' + diff + 'px)';
-          void row.offsetWidth;
-          row.style.transition = 'transform 220ms cubic-bezier(0.16, 1, 0.3, 1)';
-          row.style.transform = 'translateY(0)';
-        }
-      }
-    });
-  }
+  if (!drag.prefersReduced) animateRows(allRows, oldTops, draggedItem);
 
   const rDragged = draggedItem.getBoundingClientRect();
   drag.rowTops.set(draggedItem, rDragged.top);
   drag.rowMids.set(draggedItem, rDragged.top + rDragged.height / 2);
-
   const rCrossed = crossedItem.getBoundingClientRect();
   drag.rowTops.set(crossedItem, rCrossed.top);
   drag.rowMids.set(crossedItem, rCrossed.top + rCrossed.height / 2);
-
   updateLiveNumbers();
 }
 
 function finishDrag() {
   if (!drag) return;
-
   const currentDomIds = Array.from(els.taskList.querySelectorAll('.task-item:not(.empty-item)')).map(el => el.dataset.id);
   const finalIndex = currentDomIds.indexOf(drag.id);
 
   try {
-    if (drag.target && drag.target.releasePointerCapture) {
-      drag.target.releasePointerCapture(drag.pointerId);
-    }
+    if (drag.target && drag.target.releasePointerCapture) drag.target.releasePointerCapture(drag.pointerId);
   } catch (err) {}
 
-  const rowEl = drag.rowEl;
-  const draggedId = drag.id;
-  const prefersReduced = drag.prefersReduced;
-
+  const { rowEl, id: draggedId, prefersReduced } = drag;
   els.taskList.classList.remove('is-dragging-active');
   rowEl.classList.remove('is-dragging');
-
   drag = null;
   justDragged = true;
-  setTimeout(() => {
-    justDragged = false;
-  }, 100);
+  setTimeout(() => { justDragged = false; }, 100);
 
   if (finalIndex !== -1) {
     state.tasks = moveTask(state.tasks, draggedId, finalIndex);
@@ -749,18 +395,13 @@ function finishDrag() {
 
 function cancelDrag() {
   if (!drag) return;
-
   try {
-    if (drag.target && drag.target.releasePointerCapture) {
-      drag.target.releasePointerCapture(drag.pointerId);
-    }
+    if (drag.target && drag.target.releasePointerCapture) drag.target.releasePointerCapture(drag.pointerId);
   } catch (err) {}
 
   const allRows = Array.from(els.taskList.querySelectorAll('.task-item:not(.empty-item)'));
   const oldTops = new Map();
-  allRows.forEach(row => {
-    oldTops.set(row, row.getBoundingClientRect().top);
-  });
+  allRows.forEach(row => oldTops.set(row, row.getBoundingClientRect().top));
 
   drag.rowEl.classList.remove('is-dragging');
   drag.rowEl.style.transform = '';
@@ -769,33 +410,17 @@ function cancelDrag() {
 
   const taskMap = new Map();
   allRows.forEach(item => taskMap.set(item.dataset.id, item));
-
   drag.initialOrder.forEach(id => {
     const item = taskMap.get(id);
     if (item) els.taskList.appendChild(item);
   });
 
-  if (!drag.prefersReduced) {
-    allRows.forEach(row => {
-      const oldTop = oldTops.get(row);
-      const newTop = row.getBoundingClientRect().top;
-      const diff = oldTop - newTop;
-      if (diff !== 0) {
-        row.style.transition = 'none';
-        row.style.transform = 'translateY(' + diff + 'px)';
-        void row.offsetWidth;
-        row.style.transition = 'transform 220ms cubic-bezier(0.16, 1, 0.3, 1)';
-        row.style.transform = 'translateY(0)';
-      }
-    });
-  }
+  if (!drag.prefersReduced) animateRows(allRows, oldTops, null);
 
   updateLiveNumbers();
   drag = null;
   justDragged = true;
-  setTimeout(() => {
-    justDragged = false;
-  }, 100);
+  setTimeout(() => { justDragged = false; }, 100);
 }
 
 function wireEvents() {
@@ -823,16 +448,13 @@ function wireEvents() {
 
       const filtered = filterTasks(state.tasks, state.filter);
       const visible = findTasks(filtered, state.query);
-      const newRowNumber = visible.length;
-
-      const newLi = drawTask(newTask, newRowNumber, 0);
+      const newLi = drawTask(newTask, visible.length, 0);
       els.taskList.appendChild(newLi);
 
       if (window.matchMedia('(min-width: 1024px)').matches && els.taskList.scrollHeight > els.taskList.clientHeight) {
         els.taskList.scrollTo({ top: els.taskList.scrollHeight, behavior: 'smooth' });
       }
     }
-
     updateCounts();
     renderStats();
     flashAddSuccess();
@@ -869,13 +491,13 @@ function wireEvents() {
     const btn = e.target.closest('.filter-btn');
     if (!btn) return;
     const targetFilter = btn.dataset.filter;
-    if (state.filter == targetFilter) return;
+    if (state.filter === targetFilter) return;
 
     state.filter = targetFilter;
     localStorage.setItem('lastFilter', targetFilter);
     for (let i = 0; i < els.filterBtns.length; i++) {
       const b = els.filterBtns[i];
-      const match = b.dataset.filter == targetFilter;
+      const match = b.dataset.filter === targetFilter;
       b.classList.toggle('active', match);
       b.setAttribute('aria-selected', match ? 'true' : 'false');
     }
@@ -887,10 +509,9 @@ function wireEvents() {
     if (target.dataset.action === 'priority') {
       const li = target.closest('.task-item');
       if (!li) return;
-      const id = li.dataset.id;
-      state.tasks = updateTask(state.tasks, id, { priority: target.value });
+      state.tasks = updateTask(state.tasks, li.dataset.id, { priority: target.value });
       saveTasks(state.tasks);
-      updateRow(id);
+      updateRow(li.dataset.id);
     }
   });
 
@@ -907,13 +528,12 @@ function wireEvents() {
       const li = e.target.closest('.task-item');
       if (!li || e.target.closest('.check-label') || e.target.closest('.delete-btn') || e.target.closest('.priority-pill') || e.target.closest('.task-edit-input')) return;
 
-      const touchTarget = li;
       const startX = e.clientX;
       const startY = e.clientY;
 
       let touchTimer = setTimeout(() => {
         touchTimer = null;
-        startDrag(touchTarget, e);
+        startDrag(li, e);
       }, 400);
 
       const cancelTouch = () => {
@@ -927,12 +547,7 @@ function wireEvents() {
       };
 
       const checkMove = (evt) => {
-        if (!touchTimer) return;
-        const dx = Math.abs(evt.clientX - startX);
-        const dy = Math.abs(evt.clientY - startY);
-        if (dx > 8 || dy > 8) {
-          cancelTouch();
-        }
+        if (touchTimer && (Math.abs(evt.clientX - startX) > 8 || Math.abs(evt.clientY - startY) > 8)) cancelTouch();
       };
 
       window.addEventListener('pointermove', checkMove);
@@ -944,15 +559,8 @@ function wireEvents() {
   window.addEventListener('pointermove', (e) => {
     if (!drag) return;
     e.preventDefault();
-
     const deltaY = e.clientY - drag.startY;
-
-    if (!drag.prefersReduced) {
-      drag.rowEl.style.transform = 'translateY(' + deltaY + 'px) rotate(0.5deg) scale(1.02)';
-    } else {
-      drag.rowEl.style.transform = 'translateY(' + deltaY + 'px)';
-    }
-
+    drag.rowEl.style.transform = drag.prefersReduced ? `translateY(${deltaY}px)` : `translateY(${deltaY}px) rotate(0.5deg) scale(1.02)`;
     const currentDraggedMid = drag.initialMidY + deltaY;
 
     while (true) {
@@ -970,18 +578,10 @@ function wireEvents() {
     }
   });
 
-  window.addEventListener('pointerup', () => {
-    if (drag) finishDrag();
-  });
-
-  window.addEventListener('pointercancel', () => {
-    if (drag) finishDrag();
-  });
-
+  window.addEventListener('pointerup', () => { if (drag) finishDrag(); });
+  window.addEventListener('pointercancel', () => { if (drag) finishDrag(); });
   window.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && drag) {
-      cancelDrag();
-    }
+    if (e.key === 'Escape' && drag) cancelDrag();
   });
 
   els.taskList.addEventListener('click', (e) => {
@@ -994,8 +594,7 @@ function wireEvents() {
 
       const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
       const id = li.dataset.id;
-
-      if (prefersReduced) {
+      const runDelete = () => {
         li.classList.add('deleting');
         const onEnd = (evt) => {
           if (evt.propertyName === 'grid-template-rows') {
@@ -1005,19 +604,12 @@ function wireEvents() {
           }
         };
         li.addEventListener('transitionend', onEnd);
-      } else {
+      };
+
+      if (prefersReduced) runDelete();
+      else {
         li.classList.add('shake');
-        setTimeout(() => {
-          li.classList.add('deleting');
-          const onEnd = (evt) => {
-            if (evt.propertyName === 'grid-template-rows') {
-              li.removeEventListener('transitionend', onEnd);
-              state.tasks = removeTask(state.tasks, id);
-              sync();
-            }
-          };
-          li.addEventListener('transitionend', onEnd);
-        }, 320);
+        setTimeout(runDelete, 320);
       }
       return;
     }
@@ -1036,8 +628,7 @@ function wireEvents() {
     const li = e.target.closest('.task-item');
     if (!li || li.classList.contains('editing') || li.classList.contains('deleting')) return;
 
-    const id = li.dataset.id;
-    state.tasks = toggleTask(state.tasks, id);
+    state.tasks = toggleTask(state.tasks, li.dataset.id);
     sync();
   });
 
@@ -1083,13 +674,11 @@ function wireParallax() {
         const halfH = window.innerHeight / 2;
         const normX = (mouseX - halfW) / halfW;
         const normY = (mouseY - halfH) / halfH;
-
         for (let i = 0; i < svgs.length; i++) {
-          const svg = svgs[i];
-          const depth = parseFloat(svg.dataset.depth) || 0.5;
+          const depth = parseFloat(svgs[i].dataset.depth) || 0.5;
           const tx = Math.round(normX * 18 * depth * 100) / 100;
           const ty = Math.round(normY * 18 * depth * 100) / 100;
-          svg.style.transform = `translate3d(${tx}px, ${ty}px, 0)`;
+          svgs[i].style.transform = `translate3d(${tx}px, ${ty}px, 0)`;
         }
         ticking = false;
       });
@@ -1131,4 +720,3 @@ function boot() {
 }
 
 boot();
-
